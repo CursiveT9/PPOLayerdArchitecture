@@ -3,6 +3,7 @@ package inventory.presentation;
 import inventory.application.InventoryService;
 import inventory.domain.Product;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
@@ -32,6 +33,8 @@ public class InventoryConsoleUI {
         System.out.println("4. Провести инвентаризацию (коррекция)");
         System.out.println("5. Показать все продукты");
         System.out.println("6. Показать продукты с критическим уровнем");
+        System.out.println("7. Показать просроченные продукты");
+        System.out.println("8. Списать просроченные продукты");
         System.out.println("0. Выход");
         System.out.print("Выберите действие: ");
     }
@@ -44,24 +47,22 @@ public class InventoryConsoleUI {
             case 4 -> adjustInventory();
             case 5 -> showAllProducts();
             case 6 -> showCriticalProducts();
+            case 7 -> showExpiredProducts();
+            case 8 -> writeOffExpiredProducts();
             case 0 -> System.out.println("Выход...");
             default -> System.out.println("Неверный выбор.");
         }
     }
 
-    private void addProduct() {
-        System.out.print("ID: ");
+    private void adjustInventory() {
+        System.out.print("ID продукта: ");
         String id = scanner.nextLine();
-        System.out.print("Название: ");
-        String name = scanner.nextLine();
-        System.out.print("Количество: ");
-        int quantity = scanner.nextInt();
-        System.out.print("Критический уровень: ");
-        int level = scanner.nextInt();
+        System.out.print("Фактическое количество: ");
+        int actual = scanner.nextInt();
 
         try {
-            service.addProduct(id, name, quantity, level);
-            System.out.println("Продукт добавлен.");
+            service.adjustInventory(id, actual);
+            System.out.println("Инвентаризация выполнена.");
         } catch (Exception e) {
             System.out.println("Ошибка: " + e.getMessage());
         }
@@ -95,15 +96,43 @@ public class InventoryConsoleUI {
         }
     }
 
-    private void adjustInventory() {
-        System.out.print("ID продукта: ");
+    private void addProduct() {
+        System.out.print("ID: ");
         String id = scanner.nextLine();
-        System.out.print("Фактическое количество: ");
-        int actual = scanner.nextInt();
+        System.out.print("Название: ");
+        String name = scanner.nextLine();
+        System.out.print("Количество: ");
+        int quantity = scanner.nextInt();
+        System.out.print("Критический уровень: ");
+        int level = scanner.nextInt();
+        scanner.nextLine(); // очистка буфера
+
+        System.out.print("Срок годности (ГГГГ-ММ-ДД): ");
+        String expiryDateStr = scanner.nextLine();
+        LocalDate expiryDate = LocalDate.parse(expiryDateStr);
 
         try {
-            service.adjustInventory(id, actual);
-            System.out.println("Инвентаризация выполнена.");
+            service.addProduct(id, name, quantity, level, expiryDate);
+            System.out.println("Продукт добавлен.");
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+    }
+
+    private void showExpiredProducts() {
+        List<Product> expired = service.getExpiredProducts();
+        if (expired.isEmpty()) {
+            System.out.println("Нет просроченных продуктов.");
+        } else {
+            System.out.println("Просроченные продукты:");
+            expired.forEach(System.out::println);
+        }
+    }
+
+    private void writeOffExpiredProducts() {
+        try {
+            service.writeOffExpiredProducts();
+            System.out.println("Просроченные продукты списаны.");
         } catch (Exception e) {
             System.out.println("Ошибка: " + e.getMessage());
         }

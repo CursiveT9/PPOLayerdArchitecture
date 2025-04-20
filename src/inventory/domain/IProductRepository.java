@@ -7,4 +7,5 @@ public interface IProductRepository {
     void addProduct(Product product);
     Optional<Product> findById(String id);
     List<Product> findAll();
+    void writeOffExpiredProducts();
 }

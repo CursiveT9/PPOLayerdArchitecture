@@ -22,4 +22,17 @@ public class InMemoryProductRepository implements IProductRepository {
     public List<Product> findAll() {
         return new ArrayList<>(storage.values());
     }
+
+    @Override
+    public void writeOffExpiredProducts() {
+        List<String> expiredIds = new ArrayList<>();
+        for (Product product : storage.values()) {
+            if (product.isExpired()) {
+                expiredIds.add(product.getId());
+            }
+        }
+        for (String id : expiredIds) {
+            storage.remove(id);
+        }
+    }
 }

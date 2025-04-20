@@ -2,7 +2,7 @@ package inventory.application;
 
 import inventory.domain.Product;
 import inventory.domain.IProductRepository;
-
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,8 +14,8 @@ public class InventoryService {
         this.repository = repository;
     }
 
-    public void addProduct(String id, String name, int quantity, int criticalLevel) {
-        var product = new Product(id, name, quantity, criticalLevel);
+    public void addProduct(String id, String name, int quantity, int criticalLevel, LocalDate expiryDate) {
+        var product = new Product(id, name, quantity, criticalLevel, expiryDate);
         repository.addProduct(product);
     }
 
@@ -53,5 +53,23 @@ public class InventoryService {
     private Product getProductOrThrow(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Продукт не найден"));
+    }
+
+    public void writeOffExpiredProducts() {
+        List<Product> allProducts = repository.findAll();
+        for (Product product : allProducts) {
+            if (product.isExpired()) {
+                repository.writeOffExpiredProducts();
+                System.out.println("Списан просроченный продукт: " + product);
+            } else {
+                System.out.println("Продукт не просрочен: " + product);
+            }
+        }
+    }
+
+    public List<Product> getExpiredProducts() {
+        return repository.findAll().stream()
+                .filter(Product::isExpired)
+                .collect(Collectors.toList());
     }
 }
